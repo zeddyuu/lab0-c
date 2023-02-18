@@ -126,8 +126,6 @@ bool q_delete_mid(struct list_head *head)
     list_for_each_entry_safe (c, n, head, list) {
         cnt++;
         if (cnt == (size / 2)) {
-            c->list.prev->next = c->list.next;
-            c->list.next->prev = c->list.prev;
             list_del(&c->list);
             q_release_element(c);
             break;
