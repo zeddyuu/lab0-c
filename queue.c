@@ -1,8 +1,9 @@
+#include "queue.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "list.h"
 
-#include "queue.h"
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
@@ -14,11 +15,25 @@
 /* Create an empty queue */
 struct list_head *q_new()
 {
-    return NULL;
+    struct list_head *q = malloc(sizeof(struct list_head));
+    if (!q)
+        return NULL;
+    INIT_LIST_HEAD(q);
+    return q;
 }
 
 /* Free all storage used by queue */
-void q_free(struct list_head *l) {}
+void q_free(struct list_head *l)
+{
+    if (!l)
+        return;
+    element_t *c, *n;
+    list_for_each_entry_safe (c, n, l, list) {
+        list_del(&c->list);
+        q_release_element(c);
+    }
+    free(l);
+}
 
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
