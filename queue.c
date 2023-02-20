@@ -4,7 +4,6 @@
 #include <string.h>
 #include "list.h"
 
-
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
  * following line.
@@ -120,17 +119,13 @@ bool q_delete_mid(struct list_head *head)
     // https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
     if (!head || list_empty(head))
         return false;
-    int size = q_size(head);
-    element_t *c, *n;
-    int cnt = -1;
-    list_for_each_entry_safe (c, n, head, list) {
-        cnt++;
-        if (cnt == (size / 2)) {
-            list_del(&c->list);
-            q_release_element(c);
-            break;
-        }
+    struct list_head *fast = head->next, *slow = fast;
+    while (fast->next != head && fast != head) {
+        slow = slow->next;
+        fast = fast->next->next;
     }
+    list_del(slow);
+    q_release_element(list_entry(slow, element_t, list));
     return true;
 }
 
@@ -170,23 +165,9 @@ void q_reverse(struct list_head *head)
 void q_reverseK(struct list_head *head, int k)
 {
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
-
-    if (!head || k <= 1)
-        return;
-    struct list_head *cur, *safe, *tmp = head;
-    LIST_HEAD(dummy);
-    int count = 0;
-    list_for_each_safe (cur, safe, head) {
-        count++;
-        if (count == k) {
-            list_cut_position(&dummy, tmp, cur);
-            q_reverse(&dummy);
-            list_splice_init(&dummy, tmp);
-            count = 0;
-            tmp = safe->prev;
-        }
-    }
+    return;
 }
+
 
 /* Sort elements of queue in ascending order */
 void q_sort(struct list_head *head) {}
