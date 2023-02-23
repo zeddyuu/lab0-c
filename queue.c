@@ -179,22 +179,21 @@ void q_reverse(struct list_head *head)
 void q_reverseK(struct list_head *head, int k)
 {
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
-    if (!head || list_empty(head))
+    if (!head || list_empty(head) || k <= 1)
         return;
-    struct list_head *c, *n, tmp, *tmp_head = head;
-    INIT_LIST_HEAD(&tmp);
+    struct list_head *c, *n, *tmp_head = head;
+    LIST_HEAD(dummy);
     int i = 0;
     list_for_each_safe (c, n, head) {
         i++;
         if (i == k) {
-            list_cut_position(&tmp, tmp_head, n);
-            q_reverse(&tmp);
-            list_splice_init(&tmp, tmp_head);
+            list_cut_position(&dummy, tmp_head, c);
+            q_reverse(&dummy);
+            list_splice_init(&dummy, tmp_head);
             i = 0;
             tmp_head = n->prev;
         }
     }
-    return;
 }
 struct list_head *merge_two_list(struct list_head *l1, struct list_head *l2)
 {
@@ -273,10 +272,23 @@ void q_sort(struct list_head *head)
  * the right side of it */
 int q_descend(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+    int len = 0;
+    for (struct list_head *cur = head->prev; cur != head && cur->prev != head;
+         len++) {
+        element_t *c = container_of(cur, element_t, list);
+        element_t *p = container_of(cur->prev, element_t, list);
+        if (strcmp(c->value, p->value) > 0) {
+            list_del(&p->list);
+            q_release_element(p);
+            len--;
+        } else {
+            cur = cur->prev;
+        }
+    }
+    return len;
 }
-
 /* Merge all the queues into one sorted queue, which is in ascending order */
 int q_merge(struct list_head *head)
 {
