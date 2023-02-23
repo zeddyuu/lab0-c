@@ -135,8 +135,19 @@ bool q_delete_dup(struct list_head *head)
     // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
     if (!head || list_empty(head))
         return false;
-
-
+    element_t *c, *n;
+    bool flag = false;
+    list_for_each_entry_safe (c, n, head, list) {
+        if (c->list.next != head && strcmp(c->value, n->value) == 0) {
+            list_del(&c->list);
+            q_release_element(c);
+            flag = true;
+        } else if (flag) {
+            list_del(&c->list);
+            q_release_element(c);
+            flag = false;
+        }
+    }
     return true;
 }
 
@@ -168,6 +179,21 @@ void q_reverse(struct list_head *head)
 void q_reverseK(struct list_head *head, int k)
 {
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
+    if (!head || list_empty(head))
+        return;
+    struct list_head *c, *n, tmp, *tmp_head = head;
+    INIT_LIST_HEAD(&tmp);
+    int i = 0;
+    list_for_each_safe (c, n, head) {
+        i++;
+        if (i == k) {
+            list_cut_position(&tmp, tmp_head, n);
+            q_reverse(&tmp);
+            list_splice_init(&tmp, tmp_head);
+            i = 0;
+            tmp_head = n->prev;
+        }
+    }
     return;
 }
 struct list_head *merge_two_list(struct list_head *l1, struct list_head *l2)
@@ -254,6 +280,18 @@ int q_descend(struct list_head *head)
 /* Merge all the queues into one sorted queue, which is in ascending order */
 int q_merge(struct list_head *head)
 {
-    // https://leetcode.com/problems/merge-k-sorted-lists/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+    queue_contex_t *q1 = container_of(head->next, queue_contex_t, chain);
+    if (list_is_singular(head))
+        return q1->size;
+    for (struct list_head *cur = head->next->next; cur != head;
+         cur = cur->next) {
+        queue_contex_t *q = container_of(cur, queue_contex_t, chain);
+        list_splice_init(q->q, q1->q);
+        q->size = 0;
+    }
+    q_sort(q1->q);
+    q1->size = q_size(q1->q);
+    return q1->size;
 }
