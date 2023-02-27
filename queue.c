@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "list.h"
-
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
  * following line.
@@ -307,3 +307,6 @@ int q_merge(struct list_head *head)
     q1->size = q_size(q1->q);
     return q1->size;
 }
+
+
+

@@ -23,6 +23,7 @@
 #include "list.h"
 #include "random.h"
 
+
 /* Shannon entropy */
 extern double shannon_entropy(const uint8_t *input_data);
 extern int show_entropy;
@@ -946,6 +947,49 @@ static bool do_next(int argc, char *argv[])
     return q_show(0);
 }
 
+static bool do_shuffle(int argc, char *argv[])
+{
+    if (argc != 1) {
+        report(1, "%s takes no arguments", argv[0]);
+        return false;
+    }
+    if (current && exception_setup(true)) {
+        struct list_head *head = current->q;
+        if (!head || list_empty(head))
+            return false;
+        srand(time(NULL));
+        struct list_head *c, *n;
+        int size = q_size(head);
+        list_for_each_safe (c, n, head) {
+            if (size == 1)
+                break;
+            int index = rand() % size;
+            struct list_head *t = c;
+            while (index--) {
+                t = t->next;
+            }
+            if (t == c) {
+                size--;
+                continue;
+            } else {
+                // swap node
+                struct list_head *pos = t->prev;
+                list_del(t);
+                t->next = c->next;
+                t->next->prev = t;
+                t->prev = c->prev;
+                t->prev->next = t;
+                if (pos == c)
+                    pos = t;
+                list_add(c, pos);
+            }
+            size--;
+        }
+    }
+    q_show(0);
+    return !error_check();
+}
+
 static void console_init()
 {
     ADD_COMMAND(new, "Create new queue", "");
@@ -982,6 +1026,7 @@ static void console_init()
                 "");
     ADD_COMMAND(reverseK, "Reverse the nodes of the queue 'K' at a time",
                 "[K]");
+    ADD_COMMAND(shuffle, "Shuffle all the nodes in queue", "");
     add_param("length", &string_length, "Maximum length of displayed string",
               NULL);
     add_param("malloc", &fail_probability, "Malloc failure probability percent",
